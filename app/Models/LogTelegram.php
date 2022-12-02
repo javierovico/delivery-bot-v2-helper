@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
  * @property string tipo
  * @property mixed $id
  * @property mixed|null $external_id
+ * @property int|null $update_id
  */
 class LogTelegram  extends DefaultModel
 {
@@ -20,6 +21,7 @@ class LogTelegram  extends DefaultModel
     /**Columnas*/
     const COLUMNA_ID = 'id';
     const COLUMNA_EXTERNAL_ID = 'external_id';
+    const COLUMNA_UPDATE_ID = 'update_id';
     const COLUMNA_INPUT = 'input';
     const COLUMNA_OUTPUT = 'output';
 
@@ -45,13 +47,14 @@ class LogTelegram  extends DefaultModel
         self::COLUMNA_INPUT => '{}',
     ];
 
-    public static function addLog(array $input, array $output, $tipo = self::TIPO_HOOK, $externalId = null): LogTelegram
+    public static function addLog(array $input, array $output, $tipo = self::TIPO_HOOK, $externalId = null, $upateId = null): LogTelegram
     {
         $nuevo = new self();
         $nuevo->output = $output;
         $nuevo->tipo = $tipo;
         $nuevo->input = $input;
         $nuevo->external_id = $externalId;
+        $nuevo->update_id = $upateId;
         $nuevo->save();
         return $nuevo;
     }

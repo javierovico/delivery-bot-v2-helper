@@ -16,7 +16,8 @@ class CreateLogTelegramsTable extends Migration
     {
         Schema::connection(LogTelegram::CONNECTION_DB)->create(LogTelegram::tableName, function (Blueprint $table) {
             $table->id(LogTelegram::COLUMNA_ID);
-            $table->unsignedBigInteger(LogTelegram::COLUMNA_EXTERNAL_ID)->unique();
+            $table->unsignedBigInteger(LogTelegram::COLUMNA_EXTERNAL_ID)->nullable()->unique();
+            $table->unsignedBigInteger(LogTelegram::COLUMNA_UPDATE_ID)->nullable()->unique();
             $table->string(LogTelegram::COLUMNA_TIPO,100);
             $table->json(LogTelegram::COLUMNA_INPUT);
             $table->json(LogTelegram::COLUMNA_OUTPUT);
