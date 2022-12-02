@@ -67,11 +67,17 @@ class EscuchaPeticion extends Command
                 $request = Http::post("http://delivery-bot-v2.javierovicolocal.com/api/telegram/webhook?XDEBUG_SESSION_START=PHPSTORM", $input);
                 if (!$request->successful() || !$request->json()) {
                     if ($request->json()) {
+                        $rutaProyecto = 'delivery-bot-v2';
                         $error = $request->json('error');
                         $this->error($error);
-                        $this->table(['archivo','linea'],collect($request->json('trace'))
-                            ->filter(fn($i)=>!preg_match('/\/delivery-bot-v2\/vendor\//', $i['file']))
-                            ->map(fn($i) => [$i['file'],$i['line']])
+                        $this->table(['archivo','function','class','linea'],collect($request->json('trace'))
+                            ->filter(fn($i)=>!key_exists('file',$i) || !preg_match('/\/'.$rutaProyecto.'\/vendor\//', $i['file']))
+                            ->map(fn($i) => [
+                                key_exists('file',$i)?preg_replace('/.*' . $rutaProyecto . '\//', '', $i['file']): 'n',
+                                key_exists('function',$i)?$i['function']:'sf',
+                                key_exists('class',$i)?$i['class']:'sc',
+                                key_exists('line',$i)?$i['line']:'sl'
+                            ])
                         );
                         throw new \RuntimeException("Fail");
                     } else {
