@@ -75,7 +75,9 @@ class EscuchaPeticionLibre extends Command
             $barCargaContactos->setMessage(++$cantidadPeticion, 'cantidadPeticion');
             $barCargaContactos->display();
             foreach ($dataRequest['result'] as $input) {
-                $request = Http::post(config('helper.urlInterna') ."?XDEBUG_SESSION_START=PHPSTORM", $input);
+                $urlInterna = config('helper.urlInterna');
+                $secretToken = config('helper.secret_token');
+                $request = Http::withHeaders(['X-Telegram-Bot-Api-Secret-Token' => $secretToken])->post($urlInterna ."?XDEBUG_SESSION_START=PHPSTORM", $input);
                 if (!$request->successful() || !$request->json()) {
                     if ($request->json()) {
                         $rutaProyecto = 'delivery-bot-v2';
