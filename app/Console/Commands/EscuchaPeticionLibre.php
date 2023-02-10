@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Models\LogTelegram;
+use Carbon\CarbonImmutable;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Http;
 use Symfony\Component\Console\Helper\ProgressBar;
@@ -56,11 +57,13 @@ class EscuchaPeticionLibre extends Command
         $ultimoLog = LogTelegram::query()->orderByDesc(LogTelegram::COLUMNA_UPDATE_ID)->first();
         $ultimoId = $ultimoLog ? $ultimoLog->update_id : null;
         $barCargaContactos = new ProgressBar($output->section());
-        $barCargaContactos->setFormat("UltimoId: <info>%ultimoId%</info>\nCantidad Peticiones: <info>%cantidadPeticion%</info>\nRegistros nuevos: <info>%current%</info>");
+        $barCargaContactos->setFormat("UltimoId: <info>%ultimoId%</info>\nCantidad Peticiones: <info>%cantidadPeticion%</info>\nRegistros nuevos: <info>%current%</info>\nUltimo Registro: <info>%ultimoRegistro%</info>");
         $barCargaContactos->setMessage($ultimoId ?: 'null', 'ultimoId');
         $barCargaContactos->setMessage($cantidadPeticion, 'cantidadPeticion');
+        $barCargaContactos->setMessage('--', 'ultimoRegistro');
         $barCargaContactos->start();
         $barCargaContactos->display();
+        $fechaUltimoRegistro = null;
         do {
             $request = Http::withHeaders(['Accept' => 'application/json'])->post($url, [
                 'offset' => $ultimoId + 1,
@@ -102,8 +105,14 @@ class EscuchaPeticionLibre extends Command
                 LogTelegram::addLog($input,$output, LogTelegram::TIPO_RESEND, null, $ultimoId)->id;
                 $barCargaContactos->setMessage($ultimoId ?: 'null', 'ultimoId');
                 $barCargaContactos->advance();
-                $barCargaContactos->display();
             }
+            if (count($dataRequest['result'])) {
+                $fechaUltimoRegistro = CarbonImmutable::now();
+            }
+            if ($fechaUltimoRegistro) {
+                $barCargaContactos->setMessage(CarbonImmutable::now()->diffInMinutes($fechaUltimoRegistro) . 's', 'ultimoRegistro');
+            }
+            $barCargaContactos->display();
         } while (true);
     }
 }

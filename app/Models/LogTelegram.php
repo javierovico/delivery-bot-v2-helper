@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
  * @property mixed $id
  * @property mixed|null $external_id
  * @property int|null $update_id
+ * @method static self findOrFail(array|string|null $peticionId)
  */
 class LogTelegram  extends DefaultModel
 {
