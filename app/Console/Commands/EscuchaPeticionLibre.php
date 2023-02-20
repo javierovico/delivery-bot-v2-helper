@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Models\DeliveryPrincipal\Bot;
 use App\Models\LogTelegram;
 use Carbon\CarbonImmutable;
 use Illuminate\Console\Command;
@@ -18,7 +19,7 @@ class EscuchaPeticionLibre extends Command
      *
      * @var string
      */
-    protected $signature = 'escucha-peticion-libre';
+    protected $signature = 'escucha-peticion-libre {codigo}';
 
     /**
      * The console command description.
@@ -37,9 +38,10 @@ class EscuchaPeticionLibre extends Command
         parent::__construct();
     }
 
-    private function urlMethod(string $method): string
+    private function urlMethod(string $method, ?Bot $bot): string
     {
-        $token = config('telegrambot.api_key');
+//        $token = config('telegrambot.api_key');
+        $token = $bot->token_api;
         return self::BASE_URL . $token . '/' . $method;
     }
 
@@ -50,9 +52,13 @@ class EscuchaPeticionLibre extends Command
      */
     public function handle()
     {
+        $codigo = $this->argument('codigo');
+        $bot = Bot::getByCode($codigo, true);
+        $this->info($codigo);
         $output = new ConsoleOutput();
         $cantidadPeticion = 0;
-        $url = $this->urlMethod("getUpdates");
+        $url = $this->urlMethod("getUpdates", $bot);
+        $this->info("URL: " . $url);
         /** @var LogTelegram $ultimoLog */
         $ultimoLog = LogTelegram::query()->orderByDesc(LogTelegram::COLUMNA_UPDATE_ID)->first();
         $ultimoId = $ultimoLog ? $ultimoLog->update_id : null;
@@ -78,8 +84,9 @@ class EscuchaPeticionLibre extends Command
             $barCargaContactos->setMessage(++$cantidadPeticion, 'cantidadPeticion');
             $barCargaContactos->display();
             foreach ($dataRequest['result'] as $input) {
-                $urlInterna = config('helper.urlInterna');
-                $secretToken = config('helper.secret_token');
+                $urlInterna = config('helper.urlInterna') . '/' . $bot->codigo;
+//                $secretToken = config('helper.secret_token');
+                $secretToken = $bot->token_bot;
                 $request = Http::withHeaders(['X-Telegram-Bot-Api-Secret-Token' => $secretToken])->post($urlInterna ."?XDEBUG_SESSION_START=PHPSTORM", $input);
                 if (!$request->successful() || !$request->json()) {
                     if ($request->json()) {
@@ -102,7 +109,7 @@ class EscuchaPeticionLibre extends Command
                 }
                 $output = $request->json();
                 $ultimoId = $input['update_id'];
-                LogTelegram::addLog($input,$output, LogTelegram::TIPO_RESEND, null, $ultimoId)->id;
+                LogTelegram::addLog($bot->id, $input,$output, LogTelegram::TIPO_RESEND, null, $ultimoId)->id;
                 $barCargaContactos->setMessage($ultimoId ?: 'null', 'ultimoId');
                 $barCargaContactos->advance();
             }

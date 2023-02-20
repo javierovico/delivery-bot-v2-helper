@@ -86,7 +86,7 @@ class EscuchaPeticion extends Command
                 }
                 $output = $request->json();
                 $ultimoId = $data['id'];
-                LogTelegram::addLog($input,$output, LogTelegram::TIPO_RESEND, $ultimoId)->id;
+                LogTelegram::addLog(0, $input,$output, LogTelegram::TIPO_RESEND, $ultimoId)->id;
                 if ($automatico) {
                     $barCargaContactos->setMessage($ultimoId ?: 'null', 'ultimoId');
                     $barCargaContactos->advance();

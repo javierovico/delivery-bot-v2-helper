@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
  * @property mixed $id
  * @property mixed|null $external_id
  * @property int|null $update_id
+ * @property mixed $bot_id
  * @method static self findOrFail(array|string|null $peticionId)
  */
 class LogTelegram  extends DefaultModel
@@ -25,6 +26,7 @@ class LogTelegram  extends DefaultModel
     const COLUMNA_UPDATE_ID = 'update_id';
     const COLUMNA_INPUT = 'input';
     const COLUMNA_OUTPUT = 'output';
+    const COLUMNA_BOT_ID = 'bot_id';
 
     /**Tipos de logs*/
     const TIPO_HOOK = 'hook';
@@ -48,7 +50,7 @@ class LogTelegram  extends DefaultModel
         self::COLUMNA_INPUT => '{}',
     ];
 
-    public static function addLog(array $input, array $output, $tipo = self::TIPO_HOOK, $externalId = null, $upateId = null): LogTelegram
+    public static function addLog($botId, array $input, array $output, $tipo = self::TIPO_HOOK, $externalId = null, $upateId = null): LogTelegram
     {
         $nuevo = new self();
         $nuevo->output = $output;
@@ -56,6 +58,7 @@ class LogTelegram  extends DefaultModel
         $nuevo->input = $input;
         $nuevo->external_id = $externalId;
         $nuevo->update_id = $upateId;
+        $nuevo->bot_id = $botId;
         $nuevo->save();
         return $nuevo;
     }
