@@ -58,7 +58,9 @@ class EscuchaPeticionLibre extends Command
         $output = new ConsoleOutput();
         $cantidadPeticion = 0;
         $url = $this->urlMethod("getUpdates", $bot);
+        $urlInterna = config('helper.urlInterna') . '/' . $bot->codigo;
         $this->info("URL: " . $url);
+        $this->info("URL interna: " . $urlInterna);
         /** @var LogTelegram $ultimoLog */
         $ultimoLog = LogTelegram::query()->orderByDesc(LogTelegram::COLUMNA_UPDATE_ID)->first();
         $ultimoId = $ultimoLog ? $ultimoLog->update_id : null;
@@ -84,12 +86,12 @@ class EscuchaPeticionLibre extends Command
             $barCargaContactos->setMessage(++$cantidadPeticion, 'cantidadPeticion');
             $barCargaContactos->display();
             foreach ($dataRequest['result'] as $input) {
-                $urlInterna = config('helper.urlInterna') . '/' . $bot->codigo;
 //                $secretToken = config('helper.secret_token');
                 $secretToken = $bot->token_bot;
                 $request = Http::withHeaders(['X-Telegram-Bot-Api-Secret-Token' => $secretToken])->post($urlInterna ."?XDEBUG_SESSION_START=PHPSTORM", $input);
                 if (!$request->successful() || !$request->json()) {
                     if ($request->json()) {
+                        $this->error("Status Http: " . $request->status());
                         $rutaProyecto = 'delivery-bot-v2';
                         $error = $request->json('error');
                         $this->error($error);
